@@ -59,6 +59,7 @@ services:
 
 ### Workspace Utilities ##################################
     workspace:
+      platform: linux/amd64
       build:
         context: ./workspace
         args:
@@ -202,6 +203,7 @@ services:
 
 ### PHP-FPM ##############################################
     php-fpm:
+      platform: linux/amd64
       build:
         context: ./php-fpm
         args:
@@ -286,9 +288,17 @@ services:
         - ./php-fpm/php${PHP_VERSION}.ini:/usr/local/etc/php/php.ini
         - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
         - docker-in-docker:/certs/client
-      ports:
-        - "${PHP_FPM_XDEBUG_PORT}:9003"
+      # This is "Port Mapping"
+      #ports:
+        # HOST:CONTAINER
+        # - ie. Port IDE is listening on : Configured xDebug "remote_port" in ini
+        # * Older versions of laradock never defined this directive, and this is causing PHP_FPM_XDEBUG_PORT to already
+        #   be used. I'm assuming it binds a port in the container network (ie. 9003) to a port on the host machine, 
+        #   causing it to listen to connections coming "from" the host "to" the container network--Mentioned here:
+        #   https://github.com/laradock/laradock/issues/3064
+        #- "${PHP_FPM_XDEBUG_PORT}:9003"
       expose:
+        # This exposes PHP-FPM's default port to the container network without publishing them to the host machine 
         - "9000"
       extra_hosts:
         - "dockerhost:${DOCKER_HOST_IP}"
@@ -308,6 +318,7 @@ services:
 
 ### PHP Worker ############################################
     php-worker:
+      platform: linux/amd64
       build:
         context: ./php-worker
         args:
@@ -509,6 +520,7 @@ services:
 
 ### MySQL ################################################
     mysql:
+      platform: linux/amd64
       build:
         context: ./mysql
         args:
